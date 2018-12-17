@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
 	// Initiating the pcod model
 	pcod_model.init(N, M, omega0, tau);
 
-	while(pcod_model.get_t() < 2000.0){
+	while(pcod_model.get_t() < 5000.0){
 		// Iterate the model ...
 		pcod_model.step_forward();
 
