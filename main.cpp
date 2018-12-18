@@ -11,6 +11,7 @@ int main(int argc, char *argv[]){
 	double tau = 0.0;
 
 	int i;
+	int kk=0;
 	
 
 	char name[50];
