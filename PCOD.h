@@ -159,7 +159,6 @@ private:
 	double h_over_2;
 	double *t_array;
 	int idx_tau; // Index for the arrays with the past values of tau and ck
-
 	// -----------------------------------
 
 };

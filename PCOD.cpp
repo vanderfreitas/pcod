@@ -47,6 +47,8 @@ float PCOD::ran1(long *idum_){
 
 
 // ------------------- MODEL ---------------------------
+
+
 void PCOD::projectionMatrix(){
 
 	P = new double[N*N];
@@ -102,11 +104,8 @@ void PCOD::rotation_center(double *state, particle_ *particles){
 		r_y = state[i+3];
 		
 		complex<double> rk(r_x,r_y);
-		//std::cout << "rk: " << rk << std::endl;
 		complex<double> vel(cos(theta),sin(theta));
-		//std::cout << "vel: " << vel << std::endl;
 		complex<double> ck( std::real(rk)- (std::imag(vel)/ particles[index_c].w), std::imag(rk) + ( std::real(vel) / particles[index_c].w));
-		//std::cout << "ck: " << ck << std::endl;
 
 		cc[index_c] = ck;
 
@@ -122,7 +121,7 @@ void PCOD::rotation_center_delay(double *state, particle_ *particles, bool store
 	int index_c = 0;
 
 	for(i=1; i<=NE; i+=3){
-		// cc is the center of rotation at (t-tau) or (t-tau+h/2) or (t-tau+h).		
+		// cc is the center of rotation in the past: (t-tau) or (t-tau+h/2) or (t-tau+h)...		
 		cc[index_c] = particles[index_c].interp_ck_tau;
 
 		theta = state[i];
@@ -137,7 +136,7 @@ void PCOD::rotation_center_delay(double *state, particle_ *particles, bool store
 		particles[index_c].ck_current = ck;
 
 		if(store){
-			// Store the last (truly) calculated ck in the array 
+			// Store the last (truly) numerically integrated ck in the array 
 			particles[index_c].ck_tau[idx_tau] = particles[index_c].ck;
 			cc[index_c] = particles[index_c].ck_tau[idx_tau];
 			particles[index_c].interp_ck_tau = particles[index_c].ck_tau[idx_tau];
@@ -158,26 +157,6 @@ double PCOD::distance_particles(particle_ *particles, int id1, int id2){
 
 	return d;
 }
-
-
-
-/*double PCOD::uk_Kuramoto(std::vector<particle_> particles, double theta, int id){
-	
-	double potential_derivative = 0.0;
-	double theta_j=0.0;
-	
-	for(int j=0; j<N; ++j){
-		theta_j = particles[j].theta;
-		potential_derivative += sin( theta_j - theta );	
-	}		
-
-	potential_derivative = potential_derivative / double(N);
-
-	double ukk = particles[id].w - potential_derivative;
-
-	return ukk;
-}*/
-
 
 
 double PCOD::uk_circular_symmetric_paley_all_to_all(particle_ *particles, double state[], double theta, int id){
@@ -292,8 +271,6 @@ void PCOD::derivs(double y[],double df[], particle_ *particles, double interp_t,
 			df[i+1]=cos(y[i]);
 			df[i+2]=sin(y[i]);
 
-			//cout << "index=" << index << "  df[i]=" << df[i] << "  df[i+1]=" << df[i+1] << "  df[i+2]=" << df[i+2] << endl;
-
 			// Replacing the instantaneous c_k by its delayed version for future calculations.
 			cc[index] = particles[index].interp_ck_tau;
 
@@ -328,6 +305,7 @@ void PCOD::free_dvector(double *v, long nl, long nh){
 
 
 void PCOD::polint(double xa[], double ya[], int n, double x, double *y, double *dy){
+// Adapted from Numerical Recipes: http://www.it.uom.gr/teaching/linearalgebra/NumericalRecipiesInC/c3-1.pdf
 // Given arrays xa[1..n] and ya[1..n], and given a value x, this routine returns a value y
 // and an  error estimate dy. If P(x) is the polynomial of degree N − 1 such that P(xai)= yai; i =1 ;:::; n,
 // then  the  returned  value y=P(x).
@@ -428,9 +406,6 @@ void PCOD::retrieve_past_values_via_interpolation(particle_ particles[], double 
 			cy_tau[j] = std::imag(particles[i].ck_tau[index]);
 			theta_tau[j] = particles[i].theta_tau[index];
 
-
-			//cout << "i=" << i << "  in_t=" << interp_t << "  interp=" << j << "  time=" << time[j] << "  theta_tau=" << theta_tau[j] <<"  " << cx_tau[j] << " , " << cy_tau[j] << endl;
-
 			++index;
 			if(index > delay_array_size_minus_1)
 				index = 0;		
@@ -447,10 +422,8 @@ void PCOD::retrieve_past_values_via_interpolation(particle_ particles[], double 
 		// If the error is greater than 10^3, we use linear interpolation
 		if(error > fabs(0.001))
 			particles[i].interp_theta_tau = (theta_tau[1] + theta_tau[2]) / 2.0;
-		
-		//cout << "interpolated value for t=" << interp_t << "  is " << particles[i].interp_theta_tau;
+
 		particles[i].interp_theta_tau = atan2(sin(particles[i].interp_theta_tau), cos(particles[i].interp_theta_tau));
-		//cout << "  " << particles[i].interp_theta_tau << "  error=" << error << endl;
 		// ---------------------------------------------------------------------------------------
 
 
@@ -467,15 +440,14 @@ void PCOD::retrieve_past_values_via_interpolation(particle_ particles[], double 
 
 		complex<double> ck(cx_tau_, cy_tau_);
 		particles[i].interp_ck_tau = ck;
-		//cout << "interpolated value for t=" << interp_t << "  is " << particles[i].interp_ck_tau << "  error=" << error << endl;
-
-		//cout << endl;
 		// ---------------------------------------------------------------------------------------
 
 
 
 		/*
 		// Linear interpolation -----------------
+		// One uses it to faster simulations, by the cost of an increasing error
+
 		particles[i].interp_theta_tau = (theta_tau[1] + theta_tau[2]) / 2.0;
 
 		cx_tau_ = (cx_tau[1] + cx_tau[2]) / 2.0;
@@ -496,8 +468,6 @@ void PCOD::retrieve_past_values_via_interpolation(particle_ particles[], double 
 
 		}
 	}
-
-	//cout << endl;
 
 	// Free memory
 	free_dvector(time,1,array_lim);
@@ -624,8 +594,6 @@ void PCOD::init(int N_, double M_, double omega0_, double tau_){
 		cc[i] = ck;
 
 		d_theta[i] = omega0;		
-
-		//std::cout << "id: " << i << "  x: " << particle.r_x << "  y: " << particle.r_y << std::endl;
 	}
 }
 
@@ -730,9 +698,7 @@ void PCOD::step_forward(){
 		if(idx_tau > delay_array_size_minus_1) 
 			idx_tau = 0;
 
-	}
-
-	//std::cout << "\nid: " << i << "  x: " << particles[i].r_x << "  y: " << particles[i].r_y << "  theta: " << (particles[i].theta/M_PI) * 180.0 << std::endl;			
+	}		
 	
 	t=t+h;
 	it++;
