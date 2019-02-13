@@ -193,9 +193,12 @@ void PCOD::free_dvector(double *v, long nl, long nh){
 
 
 
+PCOD::PCOD(){
+
+};
 
 
-void PCOD::init(int N_, double M_, double omega0_, double h_){
+PCOD::PCOD(int N_, double M_, double omega0_, double h_){
 	int i,j;	
 
 	N = N_;

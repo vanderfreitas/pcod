@@ -41,6 +41,17 @@ using namespace std;
 
 
 
+class particle_{
+
+public:
+	double r_x; // coordinates
+	double r_y;
+	double theta; // Heading angle and phase
+	double w; // natural frequency
+	int id;
+
+};
+
 
 
 
@@ -52,22 +63,23 @@ class PCOD{
 	
 public:
 
-	struct particle_{
+	/*struct particle_{
 		double r_x; // coordinates
 		double r_y;
 		double theta; // Heading angle and phase
 		double w; // natural frequency
 		int id;
-	};
+	};*/
 
+
+	// PCOD class constructor
+	PCOD(int N_, double M_, double omega0_, double h_);
+	PCOD();
 
 	// Random number generator
 	float ran1(long *idum_);
 	// Random number generator Seed
 	long idum{-98667};
-
-	// Initialize PCOD class
-	void init(int N_, double M_, double omega0_, double h_);
 
 	// Integrate model for time dt
 	void step_forward();
@@ -90,7 +102,7 @@ public:
 	double *d_theta;
 
 
-private:
+protected:
 
 	// ---------- RK4 methods from Numerical Recipes ------------
 	void nrerror(char error_text[]);
