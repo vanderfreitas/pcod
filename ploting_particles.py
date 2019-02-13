@@ -21,11 +21,19 @@ csv_file = np.genfromtxt (name, delimiter="\t")
 
 
 
-
-# parameters
+# number of particles
 N = 12
+
+# Discretization factor
 step = 1
+
+# Begin the rendering at
 beg = 0
+
+# Save animation video (TRUE) or only a picture (FALSE)
+save_animation = False
+
+
 
 
 iterations = int( (len(csv_file)/ float(N)) / step) - 1
@@ -33,16 +41,10 @@ print "iterations: ", iterations
 
 
 #limites da tela (eixos x e y)
-x_lim_inf = -45
-x_lim_sup = 50
-y_lim_inf = -20
-y_lim_sup = 50
-
-
-#x_lim_inf = -100
-#x_lim_sup = 100
-#y_lim_inf = -100
-#y_lim_sup = 100
+x_lim_inf = -30
+x_lim_sup = 30
+y_lim_inf = -30
+y_lim_sup = 30
 
 
 particulas = []
@@ -60,12 +62,11 @@ pyplot.xticks(fontsize=18)
 pyplot.yticks(fontsize=18)
 
 
-#ax.set_xlabel(r'$x$', usetex=True, fontsize=16)
-#ax.set_ylabel(r'$y$', usetex=True, fontsize=16)
+ax.set_xlabel(r'$x$', usetex=True, fontsize=16)
+ax.set_ylabel(r'$y$', usetex=True, fontsize=16)
 
 
-
-#Criando particulas
+# Creating particles
 for i in xrange(N):
 	index = beg*N*step + i 
 
@@ -74,17 +75,14 @@ for i in xrange(N):
 	particulas.append(circle)
 
 
-
-
-#Adicionando particulas na animacao
+# Adding particles into the animation
 for i in xrange(N):
 	index = beg*N*step + i
 	particulas[i].center=(csv_file[index, 2],csv_file[index, 3])
 	ax.add_patch(particulas[i])
 
 
-
-
+# Center of mass (blue circle)
 R_x = 0
 R_y = 0
 old_R_x = 0
@@ -102,11 +100,10 @@ old_R_x = R_x
 old_R_y = R_y
 
 
-#centro de massa
+# Creating the center of mass
 circle=pyplot.Circle((0,0),1.5,fc='b',zorder=2)
 particulas.append(circle)
 particulas[N].center=(R_x,R_y)
-#ax.add_patch(particulas[N])
 
 
 
@@ -116,6 +113,7 @@ for i in xrange(N):
 	oldCoord.append([csv_file[index, 2],csv_file[index, 3]])
 
 
+# Method to render the animation
 def animate(i):
 	global x_lim_inf
 	global x_lim_sup
@@ -197,7 +195,7 @@ pyplot.tight_layout(pad=0, w_pad=-5)
 
 
 
-save_animation = False
+
 
 
 if(save_animation):

@@ -8,7 +8,7 @@ int main(int argc, char *argv[]){
 	int N = 12;
 	int M = 3;
 	double omega0 = 0.05;
-	double tau = 0.0;
+	double h = 0.1;
 
 	int i;
 	int kk=0;
@@ -23,9 +23,9 @@ int main(int argc, char *argv[]){
 	PCOD pcod_model;
 
 	// Initiating the pcod model
-	pcod_model.init(N, M, omega0, tau);
+	pcod_model.init(N, M, omega0, h);
 
-	while(pcod_model.get_t() < 5000.0){
+	while(pcod_model.get_t() < 1500.0){
 		// Integrate the model
 		pcod_model.step_forward();
 

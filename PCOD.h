@@ -33,8 +33,9 @@
 
 #define NR_END 1
 #define FREE_ARG char*
-//#define NE 3
 
+
+#define Pi_2  2.0*M_PI
 
 using namespace std;
 
@@ -50,117 +51,89 @@ class PCOD{
 
 	
 public:
+
 	struct particle_{
-	double r_x;
-	double r_y;
-	double theta;
-	double w;
-	int id;
-
-	complex<double> ck;
-	complex<double> ck_current;
-
-	complex<double> *ck_tau;  // Array with the past values of c_k
-	double *theta_tau; // Array with the past values of theta
-
-	// Used by the RK4, because we need to retrieve the values at: t - tau + h/2. 
-	// Such values are not known, them one needs to interpolate known past values.
-	complex<double> interp_ck_tau ; // Interpolated past value of c_k(t - tau + h/2)
-	double interp_theta_tau; // Interpolated past value of theta(t - tau + h/2)
+		double r_x; // coordinates
+		double r_y;
+		double theta; // Heading angle and phase
+		double w; // natural frequency
+		int id;
 	};
 
 
+	// Random number generator
 	float ran1(long *idum_);
+	// Random number generator Seed
+	long idum{-98667};
 
+	// Initialize PCOD class
 	void init(int N_, double M_, double omega0_, double h_);
+
+	// Integrate model for time dt
 	void step_forward();
+
+	// Finished the model and deallocate all structures
 	void destroy();
 
+	// Each tick corresponds to a period of time dt
 	int get_ticks();
+
+	// Current time (seconds)
 	double get_t();
 
+	// Integration time dt
+	double get_h();
 
+
+	// Public access attributes --- Ok, It is not a good idea, but let's do it for now =)
 	particle_ *particles;
 	double *d_theta;
 
-	double K = 0.1;
-
-	
 
 private:
-	
 
-
-	// Numerical integration
+	// ---------- RK4 methods from Numerical Recipes ------------
 	void nrerror(char error_text[]);
-	void derivs(double y[],double df[], particle_ *particles, double interp_t, bool store);
+	void derivs(double y[],double df[]);
 	double *dvector(long nl,long nh);
 	void free_dvector(double *v, long nl, long nh);
+	// --------------------------------------------------
 
+	// ----------- RK4 attributes ------------------------------
+	double h=0.1;
+	double tf = 5000.0;
+	double t;
+	int it;
+	double *x, *a, *b, *c,*df,*y;
+	//----------------------------------------------------------
 	
-	// Interpolation
-	void polint(double xa[], double ya[], int n, double x, double *y, double *dy);
-	void retrieve_past_values_via_interpolation(particle_ particles[], double interp_t, int num_points);
 
 
-	// Model
+
+	// ---------- PCOD model methods ------------
 	void projectionMatrix();
 	complex<double> scalar_product(double *v1, complex<double> *v2);
 	double *matrix_line(double *matrix, int l);
-	void rotation_center(double *state, particle_ *particles);
-	void rotation_center_delay(double *state, particle_ *particles, bool store);
-	double distance_particles(particle_ *particles, int id1, int id2);
+	void rotation_center(double *state);
+	double uk_circular_symmetric_paley_all_to_all(double state[], double theta, int id);
+	// ------------------------------------------
 
-	double uk_circular_symmetric_paley_all_to_all(particle_ *particles, double state[], double theta, int id);
-	double uk_circular_symmetric_paley_all_to_all_delay(particle_ *particles, double theta, int id);
-
-
-	
-
-	// Random number generation Seed
-	long idum{-986967};
-
-
-	// --- Runge-Kutta 4th order --------
-	double h=0.1;
-	double tf = 5000.0;
-
-	double t;
-	int it;
-
-	
-	double *x, *a, *b, *c,*df,*y;
-	double Pi_2 = 2.0*M_PI; 
-	//-----------------------------------
-
-
-	// ----- Model parameters ------------
-	int N = 12;
-	double M = 3;
-
-	int NE = 36;
-
-	double K_m = 0.18;
-	double K_M = -0.02;
-
-	
-	double K0 = 0.1;
-	double omega0 = 0.05; //0.05;
-
+	// ----------- PCOD model attributes -----------
 	double *P;
 	complex<double> *cc;
+	// --------------------------------------------
 
-	// delay
-	bool delay;
-	double tau;
-	int delay_array_size = 100;
-	int delay_array_size_minus_1 = 99;
 
-	double h_over_2;
-	double *t_array;
-	int idx_tau; // Index for the arrays with the past values of tau and ck
-	// -----------------------------------
 
+	// ----- PCOD model parameters ------------
+	int N = 12;
+	double M = 3;
+	int NE = 36;
+	double K_m = 0.18;
+	double K_M = -0.02;
+	double K = 0.1;
+	double K0 = 0.1;
+	double omega0 = 0.05;
 };
 
 
